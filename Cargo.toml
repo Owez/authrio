@@ -1,0 +1,9 @@
+[package]
+name = "authrio"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+base64 = "0.13"
+rust-argon2 = "0.8"
+dotenv = "0.15"
