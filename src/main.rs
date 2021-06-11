@@ -2,7 +2,7 @@
 #![deny(warnings)]
 
 mod config;
-// mod crypto;
+mod crypto;
 
 use config::Config;
 use std::{fmt, process};
