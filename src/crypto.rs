@@ -6,12 +6,12 @@ use rand::prelude::*;
 /// Length of randomly generated salts
 const SALT_LENGTH: usize = 8;
 
-/// Length of randomly generated keys
-const KEY_LENGTH: usize = 32;
+/// Length of randomly generated tokens
+const TOKEN_LENGTH: usize = 32;
 
-/// Generates a random key
-pub(crate) fn gen_key() -> String {
-    base64::encode(rand::thread_rng().gen::<[u8; KEY_LENGTH]>())
+/// Generates a random token
+pub(crate) fn gen_token() -> String {
+    base64::encode(rand::thread_rng().gen::<[u8; TOKEN_LENGTH]>())
 }
 
 /// Hash container, allowing easy password hashing access
