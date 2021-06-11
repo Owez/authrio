@@ -33,11 +33,11 @@ impl From<ConfigError> for &'static str {
 #[derive(Debug)]
 pub(crate) struct Config {
     /// Host address to show server on
-    host: [u8; 4],
+    pub(crate) host: [u8; 4],
     /// Port to show server on
-    port: u16,
+    pub(crate) port: u16,
     /// Cryptographic pepper to embed
-    pepper: Vec<u8>,
+    pub(crate) pepper: Vec<u8>,
 }
 
 impl Config {
