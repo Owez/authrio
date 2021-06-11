@@ -1,6 +1,6 @@
 //! Small static configuration structure and helper methods
 
-use std::{env, net::SocketAddr};
+use std::{env, fmt, net::SocketAddr};
 
 /// Error whilst parsing a new [Config] structure
 #[derive(Debug)]
@@ -17,15 +17,19 @@ pub(crate) enum ConfigError {
     NoPepper,
 }
 
-impl From<ConfigError> for &'static str {
-    fn from(err: ConfigError) -> Self {
-        match err {
-            ConfigError::NoHost => "No host address found within environment variables",
-            ConfigError::InvalidHost => "The host address given is invalid",
-            ConfigError::NoPort => "No port number found within environment variables",
-            ConfigError::InvalidPort => "The port number given is invalid",
-            ConfigError::NoPepper => "No application pepper found within environment variables",
-        }
+impl fmt::Display for ConfigError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                ConfigError::NoHost => "No host address found within environment variables",
+                ConfigError::InvalidHost => "The host address given is invalid",
+                ConfigError::NoPort => "No port number found within environment variables",
+                ConfigError::InvalidPort => "The port number given is invalid",
+                ConfigError::NoPepper => "No application pepper found within environment variables",
+            }
+        )
     }
 }
 
