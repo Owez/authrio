@@ -2,8 +2,11 @@
 
 use std::{env, fmt, net::SocketAddr};
 
+/// Amount of parts for the [parse_hosts] function
+const HOST_PART_NUM: usize = 4;
+
 /// Error whilst parsing a new [Config] structure
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ConfigError {
     /// [Config::host] missing
     NoHost,
@@ -68,16 +71,31 @@ impl From<Config> for SocketAddr {
 }
 
 /// Parses `i.i.i.i` into a valid [Config::host] element
-fn parse_host(input: String) -> Result<[u8; 4], ConfigError> {
-    let mut host = [0; 4];
+fn parse_host(input: impl AsRef<str>) -> Result<[u8; HOST_PART_NUM], ConfigError> {
+    let mut host = [0; HOST_PART_NUM];
+    let splitted: Vec<&str> = input.as_ref().split('.').collect();
 
-    for (ind, part) in input.split('.').enumerate() {
-        if ind > 4 {
-            return Err(ConfigError::InvalidHost);
-        }
+    if splitted.len() != HOST_PART_NUM {
+        return Err(ConfigError::InvalidHost);
+    }
 
+    for (ind, part) in splitted.into_iter().enumerate() {
         host[ind] = part.parse().map_err(|_| ConfigError::InvalidHost)?;
     }
 
     Ok(host)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn host_parsing() {
+        assert_eq!(parse_host("127.0.0.1"), Ok([127, 0, 0, 1]));
+        assert_eq!(parse_host("0.0.0.0"), Ok([0, 0, 0, 0]));
+        assert_eq!(parse_host(""), Err(ConfigError::InvalidHost));
+        assert_eq!(parse_host("0.0.0"), Err(ConfigError::InvalidHost));
+        assert_eq!(parse_host("999.999.999.999"), Err(ConfigError::InvalidHost));
+    }
 }
