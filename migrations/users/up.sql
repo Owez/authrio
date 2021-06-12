@@ -1,11 +1,13 @@
--- User model for all user related storage
+-- Model for all user related storage
 CREATE TABLE users (
     id UUID PRIMARY KEY,
-    pw_hash BLOB NOT NULL,
-    pw_salt BLOB NOT NULL,
-    oa_internal INTEGER UNIQUE FOREIGN KEY REFERENCES oauth(id),
-    created TIMESTAMP WITH TIME ZONE NOT NULL
+    pw_hash BYTEA NOT NULL,
+    pw_salt BYTEA NOT NULL,
+    token_access VARCHAR(40),
+    expiry TIMESTAMP WITH TIME ZONE,
+    created TIMESTAMP WITH TIME ZONE NOT NULL,
 );
 
 -- notes:
--- oa_internal is us using oauth for internal client-us logins
+-- `token_access` and `expiry` control local OAuth usage
+-- the `oauth` model has many-to-one relationship to here

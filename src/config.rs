@@ -4,7 +4,7 @@ use std::{env, fmt, net::SocketAddr};
 
 /// Error whilst parsing a new [Config] structure
 #[derive(Debug)]
-pub(crate) enum ConfigError {
+pub enum ConfigError {
     /// [Config::host] missing
     NoHost,
     /// [Config::host] invalidly inputted and could not be parsed
@@ -35,18 +35,18 @@ impl fmt::Display for ConfigError {
 
 /// Contains basic configuration information for startup
 #[derive(Debug)]
-pub(crate) struct Config {
+pub struct Config {
     /// Host address to show server on
-    pub(crate) host: [u8; 4],
+    pub host: [u8; 4],
     /// Port to show server on
-    pub(crate) port: u16,
+    pub port: u16,
     /// Cryptographic pepper to embed
-    pub(crate) pepper: Vec<u8>,
+    pub pepper: Vec<u8>,
 }
 
 impl Config {
     /// Creates a new [Config] from [std::env] variables found
-    pub(crate) fn new() -> Result<Self, ConfigError> {
+    pub fn new() -> Result<Self, ConfigError> {
         Ok(Self {
             host: parse_host(env::var("host").map_err(|_| ConfigError::NoHost)?)?,
             port: std::env::var("port")

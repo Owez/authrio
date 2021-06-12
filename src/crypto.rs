@@ -10,21 +10,21 @@ const SALT_LENGTH: usize = 8;
 const TOKEN_LENGTH: usize = 32;
 
 /// Generates a random token
-pub(crate) fn gen_token() -> String {
+pub fn gen_token() -> String {
     base64::encode(rand::thread_rng().gen::<[u8; TOKEN_LENGTH]>())
 }
 
 /// Hash container, allowing easy password hashing access
-pub(crate) struct Hash {
+pub struct Hash {
     /// Actual hash
-    pub(crate) inner: Vec<u8>,
+    pub inner: Vec<u8>,
     /// Salt used to construct the hash
-    pub(crate) salt: [u8; SALT_LENGTH],
+    pub salt: [u8; SALT_LENGTH],
 }
 
 impl Hash {
     /// Creates a new [Hash] from salt, pepper and a given input
-    pub(crate) fn new(
+    pub fn new(
         config: Config,
         input: impl AsRef<[u8]>,
         salt: impl Into<Option<[u8; SALT_LENGTH]>>,

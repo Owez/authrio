@@ -3,6 +3,7 @@
 
 mod config;
 mod crypto;
+mod models;
 
 use config::Config;
 use std::{fmt, process};
