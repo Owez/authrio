@@ -1,7 +1,7 @@
 //! Contains models for all database interactions
 
 mod user;
-mod extauth;
+mod authext;
 
-pub(crate) use user::{User, UserAuth};
-pub(crate) use extauth::ExtAuth;
+pub use user::{User, AuthLocal};
+pub use authext::AuthExt;

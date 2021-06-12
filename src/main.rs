@@ -1,5 +1,4 @@
 #![deny(unsafe_code)]
-#![deny(warnings)]
 
 mod config;
 mod crypto;

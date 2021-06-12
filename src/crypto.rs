@@ -1,6 +1,7 @@
 //! Contains cryptography and random generators for use in password hashing and oauth
 
 use crate::Config;
+use chrono::prelude::*;
 use rand::prelude::*;
 
 /// Length of randomly generated salts
@@ -20,6 +21,8 @@ pub struct Hash {
     pub inner: Vec<u8>,
     /// Salt used to construct the hash
     pub salt: [u8; SALT_LENGTH],
+    /// Timestamp of creation
+    pub created: DateTime<Utc>,
 }
 
 impl Hash {
@@ -41,6 +44,7 @@ impl Hash {
                 &argon2::Config::default(),
             )?,
             salt,
+            created: Utc::now(),
         })
     }
 }

@@ -11,13 +11,13 @@ pub struct User {
     /// Hashed password and salt contained in the [Hash] structure
     pub password: Hash,
     /// Optional auth information (token, etc) if created
-    pub auth: Option<UserAuth>,
+    pub auth_local: Option<AuthLocal>,
     /// Timestamp of creation
     pub created: DateTime<Utc>,
 }
 
 /// Contains user-specific authorization information
-pub struct UserAuth {
+pub struct AuthLocal {
     /// Access token created
     pub token_access: String,
     /// Expiry date of token
