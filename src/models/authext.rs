@@ -1,9 +1,11 @@
 //! See [AuthExt] for documentation
 
 use chrono::prelude::*;
+use sqlx::FromRow;
 use uuid::Uuid;
 
 /// Model for external OAuth services which can link to users
+#[derive(FromRow)]
 pub struct AuthExt {
     /// Serial primary key id
     pub id: i32,
