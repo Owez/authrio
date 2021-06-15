@@ -18,6 +18,8 @@ pub enum ConfigError {
     InvalidPort,
     /// [Config::pepper] missing
     NoPepper,
+    /// [Config::db_url] missing
+    NoDbUrl,
 }
 
 impl fmt::Display for ConfigError {
@@ -31,13 +33,14 @@ impl fmt::Display for ConfigError {
                 ConfigError::NoPort => "No port number found within environment variables",
                 ConfigError::InvalidPort => "The port number given is invalid",
                 ConfigError::NoPepper => "No application pepper found within environment variables",
+                ConfigError::NoDbUrl => "No database url found within environment variables",
             }
         )
     }
 }
 
 /// Contains basic configuration information for startup
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Config {
     /// Host address to show server on
     pub host: [u8; 4],
@@ -45,21 +48,24 @@ pub struct Config {
     pub port: u16,
     /// Cryptographic pepper to embed
     pub pepper: Vec<u8>,
+    /// Database url
+    pub db_url: String,
 }
 
 impl Config {
     /// Creates a new [Config] from [std::env] variables found
     pub fn new() -> Result<Self, ConfigError> {
         Ok(Self {
-            host: parse_host(env::var("host").map_err(|_| ConfigError::NoHost)?)?,
-            port: std::env::var("port")
+            host: parse_host(env::var("HOST").map_err(|_| ConfigError::NoHost)?)?,
+            port: std::env::var("PORT")
                 .map_err(|_| ConfigError::NoPort)?
                 .parse()
                 .map_err(|_| ConfigError::InvalidPort)?,
-            pepper: std::env::var("pepper")
+            pepper: std::env::var("PEPPER")
                 .map_err(|_| ConfigError::NoPepper)?
                 .as_bytes()
                 .into(),
+            db_url: std::env::var("DB_URL").map_err(|_| ConfigError::NoDbUrl)?,
         })
     }
 }
