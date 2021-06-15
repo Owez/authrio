@@ -1,10 +1,8 @@
 //! Contains models for all database interactions
 
-mod authext;
-mod user;
+mod user_basic;
 
-pub use authext::AuthExt;
-pub use user::{AuthLocal, User};
+pub use user_basic::{AuthBasic, UserBasic};
 
 use std::fmt;
 

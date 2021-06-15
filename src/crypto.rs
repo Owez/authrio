@@ -15,6 +15,13 @@ pub fn gen_token() -> String {
     base64::encode(rand::thread_rng().gen::<[u8; TOKEN_LENGTH]>())
 }
 
+/// Generates a simple argon2 config
+macro_rules! aconfig {
+    () => {
+        &argon2::Config::default()
+    };
+}
+
 /// Hash container, allowing easy password hashing access
 pub struct Hash {
     /// Actual hash
@@ -38,14 +45,20 @@ impl Hash {
         };
 
         Ok(Self {
-            inner: argon2::hash_raw(
-                input.as_ref(),
-                &concat_pepper(config, salt)[..],
-                &argon2::Config::default(),
-            )?,
+            inner: argon2::hash_raw(input.as_ref(), &concat_pepper(config, salt)[..], aconfig!())?,
             salt,
             created: Utc::now(),
         })
+    }
+
+    /// Compares a given input to existing hash on record
+    pub fn compare(&self, input: impl AsRef<[u8]>) -> Result<bool, argon2::Error> {
+        argon2::verify_raw(
+            self.inner.as_slice(),
+            &self.salt[..],
+            input.as_ref(),
+            aconfig!(),
+        )
     }
 }
 

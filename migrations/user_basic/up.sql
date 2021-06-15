@@ -1,4 +1,4 @@
-CREATE TABLE user (
+CREATE TABLE user_basic (
     id UUID PRIMARY KEY,
     pw_hash BYTEA NOT NULL,
     pw_salt BYTEA NOT NULL,

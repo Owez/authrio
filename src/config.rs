@@ -1,6 +1,6 @@
 //! Small static configuration structure and helper methods
 
-use std::{env, fmt, net::SocketAddr};
+use std::{env, fmt};
 
 /// Amount of parts for the [parse_hosts] function
 const HOST_PART_NUM: usize = 4;
@@ -68,11 +68,22 @@ impl Config {
             db_url: std::env::var("DB_URL").map_err(|_| ConfigError::NoDbUrl)?,
         })
     }
-}
 
-impl From<Config> for SocketAddr {
-    fn from(config: Config) -> Self {
-        Self::new(config.host.into(), config.port)
+    /// Converts into url from [Config::host] and [Config::port] options
+    pub fn url(&self) -> String {
+        let host = format!(
+            "http://{}",
+            self.host
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<String>>()
+                .join("."),
+        );
+
+        match self.port {
+            80 => host,
+            _ => format!("{}:{}", host, self.port),
+        }
     }
 }
 
@@ -103,5 +114,39 @@ mod tests {
         assert_eq!(parse_host(""), Err(ConfigError::InvalidHost));
         assert_eq!(parse_host("0.0.0"), Err(ConfigError::InvalidHost));
         assert_eq!(parse_host("999.999.999.999"), Err(ConfigError::InvalidHost));
+    }
+
+    #[test]
+    fn to_url() {
+        assert_eq!(
+            Config {
+                host: [127, 0, 0, 1],
+                port: 8080,
+                pepper: vec![],
+                db_url: String::new()
+            }
+            .url(),
+            "http://127.0.0.1:8080".to_string()
+        );
+        assert_eq!(
+            Config {
+                host: [0, 0, 0, 0],
+                port: 0,
+                pepper: vec![],
+                db_url: String::new()
+            }
+            .url(),
+            "http://0.0.0.0:0".to_string()
+        );
+        assert_eq!(
+            Config {
+                host: [255, 255, 255, 255],
+                port: 80,
+                pepper: vec![],
+                db_url: String::new()
+            }
+            .url(),
+            "http://255.255.255.255".to_string()
+        );
     }
 }

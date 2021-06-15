@@ -15,13 +15,22 @@ fn err_exit(msg: impl fmt::Display) -> ! {
     process::exit(1)
 }
 
+/// Get local package version
+macro_rules! crate_version {
+    () => {
+        env!("CARGO_PKG_VERSION")
+    };
+}
+
 #[tokio::main]
 async fn main() {
     // config setuo
+    println!("Pulling configurations..");
     dotenv::dotenv().ok();
     let config = Config::new().map_err(|err| err_exit(err)).unwrap();
 
     // sqlx setup
+    println!("Opening database server..");
     let pool = match PgPoolOptions::new()
         .max_connections(5)
         .connect(&config.db_url)
@@ -31,7 +40,10 @@ async fn main() {
         Err(err) => err_exit(format!("Database could not be loaded, {:?}", err)),
     };
 
-    // warp setup
-    let hello = warp::path!("hello" / String).map(|name| format!("Hello, {}!", name)); // example for future
-    warp::serve(hello).run(([127, 0, 0, 1], 3030)).await;
+    // route setup
+    let index = warp::path::end().map(|| format!("Authrio v{}", crate_version!()));
+
+    // run warp
+    println!("Running on {}", config.url());
+    warp::serve(index).run((config.host, config.port)).await;
 }

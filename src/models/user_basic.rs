@@ -1,4 +1,4 @@
-//! See [User] or [UserAuth] for documentation
+//! See [UserBasic] or [AuthBasic] for documentation
 
 use super::{ModelError, ModelResult};
 use crate::crypto::Hash;
@@ -7,29 +7,29 @@ use sqlx::FromRow;
 use std::convert::TryInto;
 use uuid::Uuid;
 
-/// Model for all user related storage
-pub struct User {
+/// Model for all basic user related storage
+pub struct UserBasic {
     /// Unique user primary key uuid
     pub id: Uuid,
     /// Hashed password and salt contained in the [Hash] structure
     pub password: Hash,
     /// Optional auth information (token, etc) if created
-    pub auth_local: Option<AuthLocal>,
+    pub auth: Option<AuthBasic>,
     /// Timestamp of creation
     pub created: DateTime<Utc>,
 }
 
 /// Contains user-specific authorization information
-pub struct AuthLocal {
+pub struct AuthBasic {
     /// Access token created
     pub token: String,
     /// Expiry date of token
     pub expiry: DateTime<Utc>,
 }
 
-/// Internal sqlx mapping for the [User] model
+/// Internal sqlx mapping for the [UserBasic] model
 #[derive(FromRow)]
-struct UserInternal {
+struct UserBasicInternal {
     id: Uuid,
     pw_hash: Vec<u8>,
     pw_salt: Vec<u8>,
@@ -39,10 +39,10 @@ struct UserInternal {
     created: DateTime<Utc>,
 }
 
-impl UserInternal {
-    /// Attempts to convert [UserInternal] from sqlx into a final well-kept [User]
-    fn into_user(self) -> ModelResult<User> {
-        Ok(User {
+impl UserBasicInternal {
+    /// Attempts to convert [UserBasicInternal] from sqlx into a final well-kept [UserBasic]
+    fn into_user(self) -> ModelResult<UserBasic> {
+        Ok(UserBasic {
             id: self.id,
             password: Hash {
                 inner: self.pw_hash,
@@ -57,9 +57,9 @@ impl UserInternal {
                 },
                 created: self.pw_created,
             },
-            auth_local: match self.token_access {
+            auth: match self.token_access {
                 Some(token) => match self.expiry {
-                    Some(expiry) => Ok(Some(AuthLocal { token, expiry })),
+                    Some(expiry) => Ok(Some(AuthBasic { token, expiry })),
                     None => Err(ModelError::DatabaseError(format!(
                         "Only access token exists for user {}",
                         self.id
