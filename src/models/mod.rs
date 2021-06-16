@@ -1,19 +1,33 @@
 //! Contains models for all database interactions
 
-mod user_basic;
+mod org;
+mod provider;
+mod simple;
+mod simple_auth;
 
-pub use user_basic::{AuthBasic, UserBasic};
+pub use org::Org;
+pub use provider::Provider;
+pub use simple::Simple;
+pub use simple_auth::SimpleAuth;
 
 use std::fmt;
 
 /// Shortcut to `Result<T, ModelError>` for model internals
 pub type ModelResult<T> = Result<T, ModelError>;
 
+/// Simple trait defining a `.into()` call for models to be made into other models
+pub trait IntoModel<T> {
+    /// Converts into other model and verifies information
+    fn into(self) -> ModelResult<T>;
+}
+
 /// Encompasses errors stemming from model manipulation
 #[derive(Debug)]
 pub enum ModelError {
-    /// See [UserError] for documentation
-    UserError(UserError),
+    /// See [OrgError] for documentation
+    OrgError(OrgError),
+    /// See [SimpleError] for documentation
+    SimpleError(SimpleError),
     /// Database error whilst handling a request, should not be exposed publicly
     DatabaseError(String),
     /// Unknown error occurred with optional extra info given, should not be
@@ -24,25 +38,42 @@ pub enum ModelError {
 impl fmt::Display for ModelError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ModelError::UserError(err) => write!(f, "{}", err),
+            ModelError::OrgError(err) => write!(f, "{}", err),
+            ModelError::SimpleError(err) => write!(f, "{}", err),
             ModelError::DatabaseError(_) => write!(f, "Database error"),
-            &ModelError::UnknownError(_) => write!(f, "Unknown error"),
+            ModelError::UnknownError(_) => write!(f, "Unknown error"),
         }
     }
 }
 
-/// Specific errors for the [User] model
+/// Specific errors for the [Org] model
 #[derive(Debug)]
-pub enum UserError {}
+pub enum OrgError {}
 
-impl fmt::Display for UserError {
+impl fmt::Display for OrgError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        todo!("User error string formatting")
+        todo!("Org error string formatting")
     }
 }
 
-impl From<UserError> for ModelError {
-    fn from(err: UserError) -> Self {
-        ModelError::UserError(err)
+impl From<OrgError> for ModelError {
+    fn from(err: OrgError) -> Self {
+        ModelError::OrgError(err)
+    }
+}
+
+/// Specific errors for the [Simple] model
+#[derive(Debug)]
+pub enum SimpleError {}
+
+impl fmt::Display for SimpleError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        todo!("Simple error string formatting")
+    }
+}
+
+impl From<SimpleError> for ModelError {
+    fn from(err: SimpleError) -> Self {
+        ModelError::SimpleError(err)
     }
 }

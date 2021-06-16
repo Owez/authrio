@@ -1,12 +1,8 @@
-CREATE TABLE user_basic (
+CREATE TABLE org (
     id UUID PRIMARY KEY,
+    name VARCHAR(32) NOT NULL,
     pw_hash BYTEA NOT NULL,
     pw_salt BYTEA NOT NULL,
     pw_created TIMESTAMP WITH TIME ZONE NOT NULL,
-    token_access VARCHAR(40),
-    expiry TIMESTAMP WITH TIME ZONE,
     created TIMESTAMP WITH TIME ZONE NOT NULL,
 );
-
--- notes:
--- `token_access` and `expiry` should both be present or not

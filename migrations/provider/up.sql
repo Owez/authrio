@@ -1,0 +1,3 @@
+CREATE TABLE provider (
+    name VARCHAR(32) PRIMARY KEY
+);

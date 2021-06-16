@@ -23,6 +23,7 @@ macro_rules! aconfig {
 }
 
 /// Hash container, allowing easy password hashing access
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Hash {
     /// Actual hash
     pub inner: Vec<u8>,
