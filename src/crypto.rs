@@ -34,7 +34,7 @@ pub struct Hash {
 }
 
 impl Hash {
-    /// Creates a new [Hash] from salt, pepper and a given input
+    /// Creates a new [struct@Hash] from salt, pepper and a given input
     pub fn new(
         config: Config,
         input: impl AsRef<[u8]>,

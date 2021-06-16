@@ -17,7 +17,7 @@ pub struct Org {
     pub id: Uuid,
     /// Org name to show publicly for ease-of-use
     pub name: String,
-    /// Hashed password and salt contained in the [Hash] structure
+    /// Hashed password and salt contained in the [struct@Hash] structure
     pub password: Hash,
     /// Timestamp of creation
     pub created: DateTime<Utc>,

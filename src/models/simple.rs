@@ -12,7 +12,7 @@ use uuid::Uuid;
 pub struct Simple {
     /// Unique simple (user) primary key uuid
     pub id: Uuid,
-    /// Hashed password and salt contained in the [Hash] structure
+    /// Hashed password and salt contained in the [struct@Hash] structure
     pub password: Hash,
     /// Timestamp of creation
     pub created: DateTime<Utc>,

@@ -2,7 +2,7 @@
 
 use std::{env, fmt};
 
-/// Amount of parts for the [parse_hosts] function
+/// Amount of parts for the [parse_host] function
 const HOST_PART_NUM: usize = 4;
 
 /// Error whilst parsing a new [Config] structure
@@ -53,7 +53,7 @@ pub struct Config {
 }
 
 impl Config {
-    /// Creates a new [Config] from [std::env] variables found
+    /// Creates a new [Config] from [mod@std::env] variables found
     pub fn new() -> Result<Self, ConfigError> {
         Ok(Self {
             host: parse_host(env::var("HOST").map_err(|_| ConfigError::NoHost)?)?,
