@@ -1,24 +1,21 @@
-use std::net::ToSocketAddrs;
-
 use super::{ModelError, ModelResult, ProviderError};
 use chrono::prelude::*;
 use sqlx::FromRow;
 use uuid::Uuid;
 
-/// Maximum allowed [Provider::id] size
-const MAX_ID: usize = 64;
+/// Maximum allowed size for general medium strings
+const MAX_MED: usize = 64;
 
 /// Maximum allowed uri size
 const MAX_URI: usize = 2000;
-
-/// Maximum allowed [Provider::scope] size
-const MAX_SCOPE: usize = 64;
 
 /// Provider explaining the relationship to a service from an org
 #[derive(FromRow, Debug, PartialEq, Eq, Clone)]
 pub struct Provider {
     /// The `client_id` unique primary key id
     pub id: String,
+    /// Backchannel `client_secret` identifier
+    pub secret: String,
     /// Domain of provider to connect to
     pub domain: String,
     /// Optional but recommended uri to redirect to
@@ -35,6 +32,7 @@ impl Provider {
     /// Creates a new [Provider] and validates contents, does not add to db
     pub fn new<S: Into<String>, Os: Into<Option<String>>>(
         id: S,
+        secret: S,
         domain: S,
         redirect_uri: Os,
         scope: Os,
@@ -43,6 +41,7 @@ impl Provider {
         // create
         let got = Self {
             id: id.into(),
+            secret: secret.into(),
             domain: domain.into(),
             redirect_uri: redirect_uri.into(),
             scope: scope.into(),
@@ -51,7 +50,8 @@ impl Provider {
         };
 
         // validate
-        validate(&got.id, MAX_ID, ProviderError::IdTooLong, &got.id)?;
+        validate(&got.id, MAX_MED, ProviderError::IdTooLong, &got.id)?;
+        validate(&got.secret, MAX_MED, ProviderError::SecretTooLong, &got.id)?;
         validate(&got.domain, MAX_URI, ProviderError::DomainTooLong, &got.id)?;
 
         if let Some(val) = &got.redirect_uri {
@@ -59,7 +59,7 @@ impl Provider {
         }
 
         if let Some(val) = &got.scope {
-            validate(val, MAX_SCOPE, ProviderError::ScopeTooLong, &got.id)?;
+            validate(val, MAX_MED, ProviderError::ScopeTooLong, &got.id)?;
         }
 
         // return

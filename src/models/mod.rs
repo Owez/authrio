@@ -89,6 +89,7 @@ impl From<OrgError> for ModelErrorKind {
 #[derive(Debug)]
 pub enum ProviderError {
     IdTooLong,
+    SecretTooLong,
     DomainTooLong,
     RedirectUriTooLong,
     ScopeTooLong,
@@ -101,6 +102,7 @@ impl fmt::Display for ProviderError {
             "{}",
             match self {
                 ProviderError::IdTooLong => "Id (client_id) is too long",
+                ProviderError::SecretTooLong => "Secret (client_secret) is too long",
                 ProviderError::DomainTooLong => "Domain is too long",
                 ProviderError::RedirectUriTooLong => "Redirect URI is too long",
                 ProviderError::ScopeTooLong => "Scope is too long",

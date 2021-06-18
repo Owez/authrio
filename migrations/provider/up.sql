@@ -1,5 +1,6 @@
 CREATE TABLE provider (
     id VARCHAR(64) PRIMARY KEY,
+    secret VARCHAR(64) NOT NULL,
     domain VARCHAR(2000) NOT NULL,
     redirect_uri VARCHAR(2000),
     scope VARCHAR(64),
