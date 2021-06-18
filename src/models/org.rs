@@ -1,6 +1,6 @@
 //! See [Org] for documentation
 
-use super::{IntoModel, ModelError, ModelResult};
+use super::{IntoModel, ModelError, ModelErrorKind, ModelResult, UserError};
 use crate::crypto::Hash;
 use chrono::prelude::*;
 use sqlx::FromRow;
@@ -34,20 +34,22 @@ struct OrgInternal {
     created: DateTime<Utc>,
 }
 
-impl IntoModel<Org> for OrgInternal {
-    fn into(self) -> ModelResult<Org> {
+impl IntoModel<Org, Uuid> for OrgInternal {
+    fn into(self) -> ModelResult<Org, Uuid> {
         Ok(Org {
             id: self.id,
-            name: verify_name(self.name, &self.id)?,
+            name: self.name,
             password: Hash {
                 inner: self.pw_hash,
                 salt: match self.pw_salt.try_into() {
                     Ok(salt) => salt,
                     Err(_) => {
-                        return Err(ModelError::DatabaseError(format!(
-                            "Salt length invalid for org {}",
-                            self.id
-                        )))
+                        return Err(ModelError::new(
+                            ModelErrorKind::DatabaseError(
+                                "salt length invalid for org".to_string(),
+                            ),
+                            self.id,
+                        ))
                     }
                 },
                 created: self.pw_created,
@@ -57,14 +59,24 @@ impl IntoModel<Org> for OrgInternal {
     }
 }
 
-/// Verifies name
-fn verify_name(name: String, id: &Uuid) -> ModelResult<String> {
-    if name.len() > MAX_NAME {
-        return Err(ModelError::DatabaseError(format!(
-            "Name length invalid for org {}",
-            id
-        )));
+impl IntoModel<OrgInternal, Uuid> for Org {
+    fn into(self) -> ModelResult<OrgInternal, Uuid> {
+        Ok(OrgInternal {
+            id: self.id,
+            name: verify_name(self.name, &self.id)?,
+            pw_hash: self.password.inner,
+            pw_salt: self.password.salt.to_vec(),
+            pw_created: self.password.created,
+            created: self.created,
+        })
     }
+}
 
-    Ok(name)
+/// Verifies [Org::name]/[OrgInternal::name] element
+fn verify_name(name: String, id: &Uuid) -> ModelResult<String, Uuid> {
+    if name.len() > MAX_NAME {
+        Err(ModelError::new(UserError::NameTooLong, *id))
+    } else {
+        Ok(name)
+    }
 }
