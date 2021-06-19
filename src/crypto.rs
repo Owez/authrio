@@ -15,6 +15,11 @@ pub fn gen_token() -> String {
     base64::encode(rand::thread_rng().gen::<[u8; TOKEN_LENGTH]>())
 }
 
+/// Generates ids for i32 length
+pub fn gen_id() -> i32 {
+    rand::thread_rng().gen()
+}
+
 /// Generates a simple argon2 config
 macro_rules! aconfig {
     () => {

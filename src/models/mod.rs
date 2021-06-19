@@ -2,9 +2,11 @@
 
 mod org;
 mod provider;
+mod user_provider;
 
 pub use org::Org;
 pub use provider::Provider;
+pub use user_provider::UserProvider;
 
 use std::fmt;
 

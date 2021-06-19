@@ -1,3 +1,5 @@
+//! See [Provider] for documentation
+
 use super::{ModelError, ModelResult, ProviderError};
 use chrono::prelude::*;
 use sqlx::FromRow;
