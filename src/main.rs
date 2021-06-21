@@ -40,10 +40,19 @@ async fn main() {
         Err(err) => err_exit(format!("Database could not be loaded, {:?}", err)),
     };
 
-    // route setup
+    // POST route setup
+    let auth_provider_signup = warp::path!("auth" / "provider").map(|| "hi");
+
+    // GET route setup
     let index = warp::path::end().map(|| format!("Authrio v{}", crate_version!()));
+    let auth_provider_login = warp::path!("auth" / "provider").map(|| "hi");
+
+    // route mapping
+    let post_routes = warp::post().and(auth_provider_signup);
+    let get_routes = warp::get().and(index.or(auth_provider_login));
+    let routes = post_routes.or(get_routes);
 
     // run warp
     println!("Running on {}", config.url());
-    warp::serve(index).run((config.host, config.port)).await;
+    warp::serve(routes).run((config.host, config.port)).await;
 }
