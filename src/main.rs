@@ -2,14 +2,17 @@
 
 mod config;
 mod crypto;
+mod flows;
 mod models;
+mod schemas;
 
 use config::Config;
-use hyper::Client;
+use models::ModelError;
 use sqlx::postgres::PgPoolOptions;
 use std::{fmt, process};
-use uuid::Uuid;
 use warp::Filter;
+
+use crate::schemas::UserProviderId;
 
 /// Displays given error to `stderr` and exits
 fn err_exit(msg: impl fmt::Display) -> ! {
@@ -24,13 +27,34 @@ macro_rules! crate_version {
     };
 }
 
+/// Shortcut to `Result<T, ModelError>` for route internals
+pub type RouteResult<T> = Result<T, RouteError>;
+
+/// Possible route errors
+#[derive(Debug)]
+pub enum RouteError {
+    Model(String),
+    BadUuid(String),
+}
+
+impl<Id: fmt::Display + Clone> From<ModelError<Id>> for RouteError {
+    fn from(err: ModelError<Id>) -> Self {
+        RouteError::Model(format!("{}", err))
+    }
+}
+
+/// Simple trait to convert a given data structure into a route result
+pub trait Route<T> {
+    /// Converts current instance into `T` or a [RouteError] as per the result
+    fn route(self) -> RouteResult<T>;
+}
+
 #[tokio::main]
 async fn main() {
     // config setuo
     println!("Pulling configurations..");
     dotenv::dotenv().ok();
     let config = Config::new().map_err(|err| err_exit(err)).unwrap();
-    let client = Client::new();
 
     // sqlx setup
     println!("Opening database server..");
@@ -60,7 +84,12 @@ async fn main() {
     let user_provider_patch = warp::path!("user" / "p").map(|| "TODO: update user");
 
     // DELETE route setup
-    let user_provider_delete = warp::path!("user" / "p").map(|| "TODO: delete user");
+    let user_provider_delete = warp::path!("user" / "p")
+        .and(warp::query::<UserProviderId>())
+        .map(|id| {
+            flows::user_provider_delete(&config, id).unwrap();
+            "TODO: get prev line to work"
+        });
 
     // route mapping
     let post_routes = warp::post().and(
@@ -74,7 +103,6 @@ async fn main() {
 
     // final route mapping rollup
     let routes = post_routes
-        .or(get_routes)
         .or(get_routes)
         .or(patch_routes)
         .or(delete_routes);

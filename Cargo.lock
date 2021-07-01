@@ -52,6 +52,7 @@ dependencies = [
  "dotenv",
  "rand 0.8.3",
  "rust-argon2",
+ "serde",
  "sqlx",
  "tokio",
  "uuid",
