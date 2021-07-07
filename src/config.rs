@@ -69,16 +69,14 @@ impl Config {
         })
     }
 
-    /// Converts into url from [Config::host] and [Config::port] options
-    pub fn url(&self) -> String {
-        let host = format!(
-            "http://{}",
-            self.host
-                .iter()
-                .map(|x| x.to_string())
-                .collect::<Vec<String>>()
-                .join("."),
-        );
+    /// Converts into hostname from [Config::host] and [Config::port] options
+    pub fn hostname(&self) -> String {
+        let host = self
+            .host
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>()
+            .join(".");
 
         match self.port {
             80 => host,
@@ -125,8 +123,8 @@ mod tests {
                 pepper: vec![],
                 db_url: String::new()
             }
-            .url(),
-            "http://127.0.0.1:8080".to_string()
+            .hostname(),
+            "127.0.0.1:8080".to_string()
         );
         assert_eq!(
             Config {
@@ -135,8 +133,8 @@ mod tests {
                 pepper: vec![],
                 db_url: String::new()
             }
-            .url(),
-            "http://0.0.0.0:0".to_string()
+            .hostname(),
+            "0.0.0.0:0".to_string()
         );
         assert_eq!(
             Config {
@@ -145,8 +143,8 @@ mod tests {
                 pepper: vec![],
                 db_url: String::new()
             }
-            .url(),
-            "http://255.255.255.255".to_string()
+            .hostname(),
+            "255.255.255.255".to_string()
         );
     }
 }

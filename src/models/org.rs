@@ -1,9 +1,12 @@
 //! See [Org] for documentation
 
-use super::{IntoModel, ModelError, ModelErrorKind, ModelResult, UserError};
 use crate::crypto::Hash;
+use crate::{AuthError, AuthErrorKind, AuthResult, UserError};
+use actix_web_httpauth::extractors::basic::BasicAuth;
 use chrono::prelude::*;
 use sqlx::FromRow;
+use super::IntoModel;
+
 use std::convert::TryInto;
 use uuid::Uuid;
 
@@ -23,6 +26,13 @@ pub struct Org {
     pub created: DateTime<Utc>,
 }
 
+impl Org {
+    /// Get an organisation from provided basic auth
+    pub fn from_auth(auth: BasicAuth) -> AuthResult<Self, Uuid> {
+        todo!("get org from auth")
+    }
+}
+
 /// Internal sqlx mapping for the [Org] model
 #[derive(FromRow)]
 struct OrgInternal {
@@ -35,7 +45,7 @@ struct OrgInternal {
 }
 
 impl IntoModel<Org, Uuid> for OrgInternal {
-    fn into(self) -> ModelResult<Org, Uuid> {
+    fn into_model(self) -> AuthResult<Org, Uuid> {
         Ok(Org {
             id: self.id,
             name: self.name,
@@ -44,10 +54,8 @@ impl IntoModel<Org, Uuid> for OrgInternal {
                 salt: match self.pw_salt.try_into() {
                     Ok(salt) => salt,
                     Err(_) => {
-                        return Err(ModelError::new(
-                            ModelErrorKind::DatabaseError(
-                                "salt length invalid for org".to_string(),
-                            ),
+                        return Err(AuthError::new(
+                            AuthErrorKind::DatabaseError("salt length invalid for org".to_string()),
                             self.id,
                         ))
                     }
@@ -60,7 +68,7 @@ impl IntoModel<Org, Uuid> for OrgInternal {
 }
 
 impl IntoModel<OrgInternal, Uuid> for Org {
-    fn into(self) -> ModelResult<OrgInternal, Uuid> {
+    fn into_model(self) -> AuthResult<OrgInternal, Uuid> {
         Ok(OrgInternal {
             id: self.id,
             name: verify_name(self.name, &self.id)?,
@@ -73,9 +81,9 @@ impl IntoModel<OrgInternal, Uuid> for Org {
 }
 
 /// Verifies [Org::name]/[OrgInternal::name] element
-fn verify_name(name: String, id: &Uuid) -> ModelResult<String, Uuid> {
+fn verify_name(name: String, id: &Uuid) -> AuthResult<String, Uuid> {
     if name.len() > MAX_NAME {
-        Err(ModelError::new(UserError::NameTooLong, *id))
+        Err(AuthError::new(UserError::NameTooLong, *id))
     } else {
         Ok(name)
     }

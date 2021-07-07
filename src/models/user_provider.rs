@@ -22,7 +22,7 @@ pub struct UserProvider {
 }
 
 impl UserProvider {
-    /// Creates new [UserProvider] from given provider
+    /// Creates new [UserProvider] from given info
     pub fn new(token_access: impl Into<String>, token_refresh: impl Into<Option<String>>, token_expires: impl Into<Option<DateTime<Utc>>>, provider_id: i32) -> Self {
         Self {
             id: gen_id(),

@@ -1,6 +1,6 @@
 //! See [Provider] for documentation
 
-use super::{ModelError, ModelResult, ProviderError};
+use crate::{AuthError, AuthResult, ProviderError};
 use chrono::prelude::*;
 use sqlx::FromRow;
 use uuid::Uuid;
@@ -39,7 +39,7 @@ impl Provider {
         redirect_uri: Os,
         scope: Os,
         org_id: Uuid,
-    ) -> ModelResult<Self, String> {
+    ) -> AuthResult<Self, String> {
         // create
         let got = Self {
             id: id.into(),
@@ -70,9 +70,9 @@ impl Provider {
 }
 
 /// Validates a section or errors
-fn validate(part: &str, max: usize, err: ProviderError, id: &str) -> ModelResult<(), String> {
+fn validate(part: &str, max: usize, err: ProviderError, id: &str) -> AuthResult<(), String> {
     if part.len() > max {
-        Err(ModelError::new(err, id.to_string()))
+        Err(AuthError::new(err, id.to_string()))
     } else {
         Ok(())
     }
