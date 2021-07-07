@@ -1,5 +1,6 @@
-pub mod base;
-pub mod user_provider;
+mod base;
+mod user_provider;
+mod org;
 
 /// Initializes all routes
 pub fn init(cfg: &mut actix_web::web::ServiceConfig) {
@@ -10,4 +11,5 @@ pub fn init(cfg: &mut actix_web::web::ServiceConfig) {
     cfg.service(user_provider::delete);
     cfg.service(user_provider::authorise);
     cfg.service(user_provider::refresh);
+    cfg.service(org::delete);
 }

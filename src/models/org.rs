@@ -1,11 +1,11 @@
 //! See [Org] for documentation
 
+use super::IntoModel;
 use crate::crypto::Hash;
 use crate::{AuthError, AuthErrorKind, AuthResult, UserError};
 use actix_web_httpauth::extractors::basic::BasicAuth;
 use chrono::prelude::*;
-use sqlx::FromRow;
-use super::IntoModel;
+use sqlx::{FromRow, PgPool};
 
 use std::convert::TryInto;
 use uuid::Uuid;
@@ -28,8 +28,13 @@ pub struct Org {
 
 impl Org {
     /// Get an organisation from provided basic auth
-    pub fn from_auth(auth: BasicAuth) -> AuthResult<Self, Uuid> {
+    pub fn from_auth(_auth: BasicAuth) -> AuthResult<Self, Uuid> {
         todo!("get org from auth")
+    }
+
+    /// Similar to [Org::from_auth] but deletes in one statement for efficiency
+    pub fn auth_delete(_pool: &PgPool, _auth: BasicAuth) -> AuthResult<(), Uuid> {
+        todo!("get org from auth and delete at same time")
     }
 }
 

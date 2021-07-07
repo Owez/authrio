@@ -1,4 +1,3 @@
-use crate::models::UserProvider;
 use crate::{models::Org, Config};
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use actix_web_httpauth::extractors::basic::BasicAuth;
