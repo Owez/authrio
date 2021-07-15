@@ -58,6 +58,8 @@ pub enum AuthErrorKind {
     UserError(UserError),
     /// Database error whilst handling a request, should not be exposed publicly
     DatabaseError(String),
+    /// Argon2 could not properly hash given input
+    HashError(argon2::Error),
     /// Unknown error occurred with optional extra info given, should not be
     /// exposed publicly
     UnknownError(Option<String>),
@@ -71,7 +73,9 @@ impl fmt::Display for AuthErrorKind {
             AuthErrorKind::ProviderError(err) => write!(f, "{} for provider", err),
             AuthErrorKind::DatabaseError(err) => write!(f, "Database error, {}", err),
             AuthErrorKind::UnknownError(Some(err)) => write!(f, "Unknown error, {}", err),
-            AuthErrorKind::UnknownError(None) => write!(f, "Unknown error, no info known"),
+            AuthErrorKind::UnknownError(None) | &AuthErrorKind::HashError(_) => {
+                write!(f, "Unknown error, no info known")
+            }
         }
     }
 }
@@ -82,20 +86,36 @@ impl GetErrorCode for AuthErrorKind {
             AuthErrorKind::OrgError(err) => err.code(),
             AuthErrorKind::ProviderError(err) => err.code(),
             AuthErrorKind::UserError(err) => err.code(),
-            AuthErrorKind::DatabaseError(_) | AuthErrorKind::UnknownError(_) => {
-                StatusCode::from_u16(500).unwrap()
-            }
+            AuthErrorKind::DatabaseError(_)
+            | AuthErrorKind::UnknownError(_)
+            | AuthErrorKind::HashError(_) => StatusCode::from_u16(500).unwrap(),
         }
+    }
+}
+
+impl From<argon2::Error> for AuthErrorKind {
+    fn from(err: argon2::Error) -> Self {
+        Self::HashError(err)
     }
 }
 
 /// Specific errors for the [Org] model
 #[derive(Debug, PartialEq)]
-pub enum OrgError {}
+pub enum OrgError {
+    /// No data was given to patch (update)
+    NothingToPatch,
+    /// The submitted UUID when querying was invalid
+    InvalidUuidQuery(uuid::Error),
+}
 
 impl fmt::Display for OrgError {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        todo!("org error string formatting")
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OrgError::NothingToPatch => write!(f, "No data was given to patch (update)"),
+            OrgError::InvalidUuidQuery(err) => {
+                write!(f, "The submitted UUID when querying was invalid ({})", err)
+            }
+        }
     }
 }
 
@@ -107,7 +127,10 @@ impl From<OrgError> for AuthErrorKind {
 
 impl GetErrorCode for OrgError {
     fn code(&self) -> StatusCode {
-        todo!("org response code")
+        StatusCode::from_u16(match self {
+            OrgError::NothingToPatch | OrgError::InvalidUuidQuery(_) => 400,
+        })
+        .unwrap()
     }
 }
 

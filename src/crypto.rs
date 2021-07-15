@@ -10,6 +10,9 @@ const SALT_LENGTH: usize = 8;
 /// Length of randomly generated tokens
 const TOKEN_LENGTH: usize = 32;
 
+/// Maximum length for passwords
+const MAX_PASSWORD: usize = 72;
+
 /// Generates a random token
 pub fn gen_token() -> String {
     base64::encode(rand::thread_rng().gen::<[u8; TOKEN_LENGTH]>())
@@ -18,13 +21,6 @@ pub fn gen_token() -> String {
 /// Generates ids for i32 length
 pub fn gen_id() -> i32 {
     rand::thread_rng().gen()
-}
-
-/// Generates a simple argon2 config
-macro_rules! aconfig {
-    () => {
-        &argon2::Config::default()
-    };
 }
 
 /// Hash container, allowing easy password hashing access
@@ -41,7 +37,7 @@ pub struct Hash {
 impl Hash {
     /// Creates a new [struct@Hash] from salt, pepper and a given input
     pub fn new(
-        config: Config,
+        config: &Config,
         input: impl AsRef<[u8]>,
         salt: impl Into<Option<[u8; SALT_LENGTH]>>,
     ) -> Result<Self, argon2::Error> {
@@ -51,10 +47,26 @@ impl Hash {
         };
 
         Ok(Self {
-            inner: argon2::hash_raw(input.as_ref(), &concat_pepper(config, salt)[..], aconfig!())?,
+            inner: argon2::hash_raw(
+                input.as_ref(),
+                &concat_pepper(config, salt)[..],
+                &argon2::Config::default(),
+            )?,
             salt,
             created: Utc::now(),
         })
+    }
+
+    /// Creates a new [struct@Hash] from a plaintext password
+    pub fn from_password(
+        config: &Config,
+        password: impl AsRef<[u8]>,
+    ) -> Result<Self, argon2::Error> {
+        if password.as_ref().len() > MAX_PASSWORD {
+            Err(argon2::Error::PwdTooLong)
+        } else {
+            Self::new(config, password, gen_salt())
+        }
     }
 
     /// Compares a given input to existing hash on record
@@ -63,7 +75,7 @@ impl Hash {
             self.inner.as_slice(),
             &self.salt[..],
             input.as_ref(),
-            aconfig!(),
+            &argon2::Config::default(),
         )
     }
 }
@@ -81,8 +93,8 @@ impl From<Hash> for [u8; SALT_LENGTH] {
 }
 
 /// Adds together a passed `salt` and a pepper from the [Config::pepper] element
-fn concat_pepper<'a>(config: Config, salt: [u8; SALT_LENGTH]) -> Vec<u8> {
-    [salt.to_vec(), config.pepper].concat()
+fn concat_pepper<'a>(config: &Config, salt: [u8; SALT_LENGTH]) -> Vec<u8> {
+    [&salt[..], config.pepper.as_slice()].concat()
 }
 
 /// Generates a new random salt, used in conjunction with [concat_pepper] to add peppering

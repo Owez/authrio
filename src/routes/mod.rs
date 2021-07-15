@@ -1,6 +1,7 @@
 mod base;
-mod user_provider;
 mod org;
+mod provider;
+mod user_provider;
 
 /// Initializes all routes
 pub fn init(cfg: &mut actix_web::web::ServiceConfig) {

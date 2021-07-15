@@ -2,11 +2,10 @@
 
 use super::IntoModel;
 use crate::crypto::Hash;
-use crate::{AuthError, AuthErrorKind, AuthResult, UserError};
+use crate::{AuthError, AuthErrorKind, AuthResult, Config, OrgError, UserError};
 use actix_web_httpauth::extractors::basic::BasicAuth;
 use chrono::prelude::*;
 use sqlx::{FromRow, PgPool};
-
 use std::convert::TryInto;
 use uuid::Uuid;
 
@@ -27,14 +26,59 @@ pub struct Org {
 }
 
 impl Org {
+    /// Creates a new [Org] and validates contents, does not add to db
+    pub fn new(
+        config: &Config,
+        name: impl Into<String>,
+        password: impl AsRef<[u8]>,
+    ) -> AuthResult<Self, Uuid> {
+        let id = Uuid::new_v4();
+
+        Ok(Self {
+            id: id.clone(),
+            name: validate_name(name.into(), &id)?,
+            password: match Hash::from_password(config, password) {
+                Ok(hash) => hash,
+                Err(err) => return Err(AuthError::new(AuthErrorKind::HashError(err), id)),
+            },
+            created: Utc::now(),
+        })
+    }
+
     /// Get an organisation from provided basic auth
     pub fn from_auth(_auth: BasicAuth) -> AuthResult<Self, Uuid> {
         todo!("get org from auth")
     }
 
-    /// Similar to [Org::from_auth] but deletes in one statement for efficiency
+    /// Authorizes organisation and deletes all in one
     pub fn auth_delete(_pool: &PgPool, _auth: BasicAuth) -> AuthResult<(), Uuid> {
         todo!("get org from auth and delete at same time")
+    }
+
+    /// Authorizes organisation and patches with given values all in one
+    pub fn auth_patch(
+        _pool: &PgPool,
+        _auth: BasicAuth,
+        new_name: Option<String>,
+        new_password: Option<String>,
+    ) -> AuthResult<(), Uuid> {
+        let mut changed = false;
+
+        if let Some(name) = new_name {
+            changed = true;
+            todo!("name")
+        }
+
+        if let Some(password) = new_password {
+            changed = true;
+            todo!("password")
+        }
+
+        if !changed {
+            Err(AuthError::new(OrgError::NothingToPatch, Uuid::new_v4())) // TODO: put auth in uuid slot
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -76,7 +120,7 @@ impl IntoModel<OrgInternal, Uuid> for Org {
     fn into_model(self) -> AuthResult<OrgInternal, Uuid> {
         Ok(OrgInternal {
             id: self.id,
-            name: verify_name(self.name, &self.id)?,
+            name: validate_name(self.name, &self.id)?,
             pw_hash: self.password.inner,
             pw_salt: self.password.salt.to_vec(),
             pw_created: self.password.created,
@@ -85,8 +129,8 @@ impl IntoModel<OrgInternal, Uuid> for Org {
     }
 }
 
-/// Verifies [Org::name]/[OrgInternal::name] element
-fn verify_name(name: String, id: &Uuid) -> AuthResult<String, Uuid> {
+/// Validates [Org::name]/[OrgInternal::name] element
+fn validate_name(name: String, id: &Uuid) -> AuthResult<String, Uuid> {
     if name.len() > MAX_NAME {
         Err(AuthError::new(UserError::NameTooLong, *id))
     } else {
